@@ -1,58 +1,81 @@
 using UnityEngine;
 
+// Guarda qual objeto está selecionado. A entrada (toque/clique) é tratada pelo ARFurniturePlacer,
+// que chama TrySelectAt antes de decidir se o toque deve colocar um objeto novo.
 public class ObjectColorSelector : MonoBehaviour
 {
     [Tooltip("Câmera do AR Session Origin.")]
     [SerializeField] private Camera arCamera;
 
-    private ColorableObject selectedObject;
+    [Tooltip("Painel com a paleta de cores e ações; só aparece quando há um objeto selecionado.")]
+    [SerializeField] private GameObject selectionPanel;
 
-    private void Update()
+    public ColorableObject Selected { get; private set; }
+
+    private void Awake()
     {
-        if (!TryGetPointerDown(out Vector2 screenPosition)) return;
+        if (arCamera == null)
+            arCamera = Camera.main;
 
-        if (UnityEngine.EventSystems.EventSystem.current != null &&
-            UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
-            return;
+        if (selectionPanel != null)
+            selectionPanel.SetActive(false);
+    }
 
+    // Retorna true se o toque acertou um objeto colorível (que passa a ser o selecionado).
+    public bool TrySelectAt(Vector2 screenPosition)
+    {
         Ray ray = arCamera.ScreenPointToRay(screenPosition);
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
             ColorableObject obj = hit.collider.GetComponentInParent<ColorableObject>();
             if (obj != null)
-                selectedObject = obj;
-        }
-    }
-
-    // Detecta toque real (celular) e também clique de mouse (para testar no Editor/PC).
-    private bool TryGetPointerDown(out Vector2 screenPosition)
-    {
-        if (Input.touchCount > 0)
-        {
-            Touch touch = Input.GetTouch(0);
-            if (touch.phase == TouchPhase.Began)
             {
-                screenPosition = touch.position;
+                Select(obj);
                 return true;
             }
-            screenPosition = default;
-            return false;
         }
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            screenPosition = Input.mousePosition;
-            return true;
-        }
-
-        screenPosition = default;
         return false;
     }
+
+    public void Select(ColorableObject obj)
+    {
+        if (Selected == obj) return;
+
+        if (Selected != null)
+            Selected.SetHighlighted(false);
+
+        Selected = obj;
+
+        if (Selected != null)
+            Selected.SetHighlighted(true);
+
+        if (selectionPanel != null)
+            selectionPanel.SetActive(Selected != null);
+    }
+
+    public void ClearSelection() => Select(null);
 
     // Ligado aos botões de cor da interface (ver ColorButton.cs).
     public void OnColorButtonPressed(Color color)
     {
-        if (selectedObject != null)
-            selectedObject.ApplyColor(color);
+        if (Selected != null)
+            Selected.ApplyColor(color);
+    }
+
+    // Ligado ao botão "Restaurar" da interface.
+    public void ResetSelectedColor()
+    {
+        if (Selected != null)
+            Selected.ResetColor();
+    }
+
+    // Ligado ao botão "Excluir" da interface.
+    public void DeleteSelected()
+    {
+        if (Selected == null) return;
+
+        GameObject target = Selected.gameObject;
+        Select(null);
+        Destroy(target);
     }
 }

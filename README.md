@@ -148,3 +148,7 @@ No Unity Hub: **Add > Add project from disk**, selecione a pasta `AR-T1` e abra 
    adb install -r Build/AR-T1.apk
    ```
 5. Abra o app, aponte a câmera para o chão e movimente o celular devagar até os planos aparecerem.
+
+## Funcionamento
+
+![Demonstração do projeto](gifs/Gif_funcionamento.mp4)

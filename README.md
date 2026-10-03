@@ -151,4 +151,4 @@ No Unity Hub: **Add > Add project from disk**, selecione a pasta `AR-T1` e abra 
 
 ## Funcionamento
 
-![Demonstração do projeto](gifs/Gif_funcionamento.mp4)
+![Demonstração do projeto](gifs/gif.gif)
